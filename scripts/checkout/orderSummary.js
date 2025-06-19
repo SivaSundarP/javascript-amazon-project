@@ -1,4 +1,4 @@
-import {calculateCartQuantity, cart, removeFromCart, updateDeliveryOption} from '../../data/cart.js';
+import {calculateCartQuantity, cart, removeFromCart, updateDeliveryOption, updateQuantity} from '../../data/cart.js';
 import {products, getProduct} from '../../data/products.js';
 import {formatCurrency} from '../utils/money.js';
 import dayjs from 'https://unpkg.com/supersimpledev@8.5.0/dayjs/esm/index.js';
@@ -46,9 +46,12 @@ export function renderOrderSummary() {
                     <span>
                         Quantity: <span class="quantity-label">${cartItem.quantity}</span>
                     </span>
-                    <span class="update-quantity-link link-primary">
+                    <span class="quantity-link link-primary js-update-link" data-product-id="${matchingProduct.id}">
                         Update
                     </span>
+                    <input class="update-quantity-input js-update-quantity-input-${matchingProduct.id}">
+                    <span class="save-quantity-link link-primary js-save-link" data-product-id="${matchingProduct.id}">Save</span>
+
                     <span class="delete-quantity-link link-primary js-delete-link" data-product-id="${matchingProduct.id}">
                         Delete
                     </span>
@@ -118,7 +121,7 @@ export function renderOrderSummary() {
                 renderPaymentSummary();
             });
         });
-
+    
     document.querySelectorAll('.js-delivery-option')
         .forEach((element) => {
             element.addEventListener('click', () => {
@@ -127,6 +130,54 @@ export function renderOrderSummary() {
                 renderOrderSummary();
                 updateCartQuantity();
                 renderPaymentSummary();
+            });
+        });
+    
+    document.querySelectorAll('.js-update-link')
+        .forEach((link) => {
+            link.addEventListener('click', () => {
+                const productId = link.dataset.productId;
+                console.log('Update', productId);
+
+                console.log(link.innerHTML);
+
+                const cartContainerElement = document.querySelector(`.js-cart-item-container-${productId}`);
+
+                cartContainerElement.classList.add('is-editing-quantity');
+
+            });
+        });
+    
+    function saveButtonFunction(productId) {
+
+        const newQuantity = document.querySelector(`.js-update-quantity-input-${productId}`).value;
+
+        if (newQuantity<0 || newQuantity>1000) {
+            alert('Quantity should be in between 0 and 1000.');
+        } else if (newQuantity) {
+            updateQuantity(productId, Number(newQuantity))
+            renderOrderSummary();
+            updateCartQuantity();
+            renderPaymentSummary();
+        }
+        
+        const cartContainerElement = document.querySelector(`.js-cart-item-container-${productId}`);
+
+        cartContainerElement.classList.remove('is-editing-quantity');
+    }
+
+    document.querySelectorAll('.js-save-link')
+        .forEach((link) => {
+            const {productId} = link.dataset;
+            link.addEventListener('click', () => {
+                saveButtonFunction(productId);
+            });
+
+            const inputElement = document.querySelector(`.js-update-quantity-input-${productId}`);
+            inputElement.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter'){
+                    saveButtonFunction(productId);
+                }
             });
         });
 }

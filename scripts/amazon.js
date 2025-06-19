@@ -45,7 +45,7 @@ products.forEach((product) => {
 
           <div class="product-spacer"></div>
 
-          <div class="added-to-cart">
+          <div class="added-to-cart js-added-to-cart-${product.id}">
             <img src="images/icons/checkmark.png">
             Added
           </div>
@@ -72,11 +72,37 @@ export function updateCartQuantity() {
       
 }
 
+const timers = [];
+
+function highlightAddedToCart(productId) {
+  const addedToCartElement = document.querySelector(`.js-added-to-cart-${productId}`);
+      
+  addedToCartElement.classList.add('added-to-cart-highlight');
+  
+  timers.forEach((timer) => {
+    if(timer.productId === productId) {
+      // Refresh timer
+      clearTimeout(timer.timeoutId);
+    }
+  });
+
+  let timeoutId = setTimeout(() => {
+    addedToCartElement.classList.remove('added-to-cart-highlight');
+  }, 2000);
+
+  // Add timer for selected product
+  timers.push({
+    productId,
+    timeoutId
+  });
+}
+
 document.querySelectorAll('.js-add-to-cart')
   .forEach((button) => {
     button.addEventListener('click', () => {
       const productId = button.dataset.productId;   // kebab-case to camelCase
       
+      highlightAddedToCart(productId);
       addToCart(productId);
       
       updateCartQuantity();

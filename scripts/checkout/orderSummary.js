@@ -1,4 +1,4 @@
-import {cart, removeFromCart, updateDeliveryOption} from '../../data/cart.js';
+import {calculateCartQuantity, cart, removeFromCart, updateDeliveryOption} from '../../data/cart.js';
 import {products, getProduct} from '../../data/products.js';
 import {formatCurrency} from '../utils/money.js';
 import dayjs from 'https://unpkg.com/supersimpledev@8.5.0/dayjs/esm/index.js';
@@ -110,25 +110,28 @@ export function renderOrderSummary() {
             link.addEventListener('click', () => {
                 const productId = link.dataset.productId;
                 removeFromCart(productId);
-                console.log(cart);
 
                 const conatiner = document.querySelector(`.js-cart-item-container-${productId}`);
 
                 conatiner.remove();
-
+                updateCartQuantity();
                 renderPaymentSummary();
             });
         });
 
-        document.querySelectorAll('.js-delivery-option')
-            .forEach((element) => {
-                element.addEventListener('click', () => {
-                    const {productId, deliveryOptionId} = element.dataset;
-                    updateDeliveryOption(productId, deliveryOptionId);
-                    renderOrderSummary();
-                    renderPaymentSummary();
-                });
+    document.querySelectorAll('.js-delivery-option')
+        .forEach((element) => {
+            element.addEventListener('click', () => {
+                const {productId, deliveryOptionId} = element.dataset;
+                updateDeliveryOption(productId, deliveryOptionId);
+                renderOrderSummary();
+                updateCartQuantity();
+                renderPaymentSummary();
             });
+        });
+}
 
+export function updateCartQuantity() {
+    document.querySelector('.js-return-to-home-link').innerHTML = `${calculateCartQuantity()} items`;
 }
 
